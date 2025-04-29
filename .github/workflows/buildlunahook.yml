@@ -66,7 +66,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        bits: [64]
+        bits: [32, 64]
     permissions:
       id-token: write
       attestations: write
