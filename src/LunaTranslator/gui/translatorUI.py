@@ -16,6 +16,7 @@ from myutils.magpie_builtin import MagpieBuiltin, AdapterService
 from gui.gamemanager.dialog import dialog_setting_game
 from myutils.ocrutil import ocr_run, imageCut
 from myutils.utils import (
+    stringfyerror,
     loadpostsettingwindowmethod,
     makehtml,
     getlangsrc,
@@ -492,14 +493,8 @@ class TranslatorWindow(resizableframeless):
 
     def cleartext(self, text: str):
         text = text.replace("\t", " ")
-        text = text.replace("\r", "\n")
-        text = text.replace("\u2028", "\n")
-        text = text.replace("\u2029", "\n")
-        lines = text.split("\n")
-        newlines = []
-        for line in lines:
-            if len(line.strip()):
-                newlines.append(line)
+        lines = text.splitlines()
+        newlines = [line for line in lines if line.strip()]
         return "\n".join(newlines)
 
     def showline(self, **kwargs):  # clear,res,color ,type_=1,origin=True):
@@ -796,7 +791,6 @@ class TranslatorWindow(resizableframeless):
                 buttonfunctions(
                     clicked=lambda: self._fullsgame(False),
                     rightclick=lambda: self._fullsgame(True),
-                    middleclick=MagpieBuiltin.overlay,
                     iconstate=lambda: self.isletgamefullscreened,
                 ),
             ),
@@ -1734,7 +1728,14 @@ class TranslatorWindow(resizableframeless):
             gobject.baseobject.destroytray()
             handle = NativeUtils.SimpleCreateMutex("LUNASAVECONFIGUPDATE")
             if windows.GetLastError() != windows.ERROR_ALREADY_EXISTS:
-                saveallconfig()
+                errors = saveallconfig()
+                if errors:
+                    errors = [f + "\n\t" + stringfyerror(e) for e, f in errors]
+                    QMessageBox.critical(
+                        gobject.baseobject.commonstylebase,
+                        _TR("错误"),
+                        "\n\n".join(errors),
+                    )
                 self.tryremoveuseless()
                 doupdate()
                 windows.CloseHandle(handle)

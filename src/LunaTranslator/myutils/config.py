@@ -296,7 +296,7 @@ def findgameuidofpath(gamepath, findall=False):
         return None, None
 
 
-def syncconfig(config1, default, drop=False, deep=0, skipdict=False):
+def syncconfig(config1, default, drop=False, deep=0):
 
     for key in default:
         if key not in config1:
@@ -321,8 +321,8 @@ def syncconfig(config1, default, drop=False, deep=0, skipdict=False):
             ):
                 config1[key] = default[key]
             elif type(default[key]) == dict:
-                if skipdict == False:
-                    syncconfig(config1[key], default[key], drop, deep - 1)
+                syncconfig(config1[key], default[key], drop, deep - 1)
+
     if isinstance(config1, dict) and isinstance(default, dict):
         for key in ("name", "tip", "argstype", "args"):
             if key in config1 and key not in default:
@@ -345,7 +345,7 @@ if True:  # transerrorfixdictconfig cast v1 to v2:
         transerrorfixdictconfig.pop("dict")
 
 
-syncconfig(magpie_config, dfmagpie_config, skipdict=True)
+syncconfig(magpie_config, dfmagpie_config)
 syncconfig(
     magpie_config["profiles"][globalconfig["profiles_index"]],
     dfmagpie_config["profiles"][0],
@@ -462,32 +462,38 @@ def unsafesave(fname: str, js, beatiful=True, isconfig=True):
         ff.write(js)
 
 
-def safesave(*argc, **kw):
+def safesave(errorcollect: list, *argc, **kw):
     try:
         unsafesave(*argc, **kw)
-    except:
+    except Exception as e:
+        errorcollect.append((e, argc[0]))
         print_exc()
 
 
 def saveallconfig(test=False):
-
-    safesave("userconfig/config.json", globalconfig)
-    safesave("userconfig/postprocessconfig.json", postprocessconfig)
-    safesave("userconfig/transerrorfixdictconfig.json", transerrorfixdictconfig)
-    safesave("userconfig/translatorsetting.json", translatorsetting)
-    safesave("userconfig/ocrerrorfix.json", ocrerrorfix)
-    safesave("userconfig/ocrsetting.json", ocrsetting)
+    errorcollect = []
+    safesave(errorcollect, "userconfig/config.json", globalconfig)
+    safesave(errorcollect, "userconfig/postprocessconfig.json", postprocessconfig)
     safesave(
+        errorcollect, "userconfig/transerrorfixdictconfig.json", transerrorfixdictconfig
+    )
+    safesave(errorcollect, "userconfig/translatorsetting.json", translatorsetting)
+    safesave(errorcollect, "userconfig/ocrerrorfix.json", ocrerrorfix)
+    safesave(errorcollect, "userconfig/ocrsetting.json", ocrsetting)
+    safesave(
+        errorcollect,
         "userconfig/savegamedata_5.3.1.json",
         [savehook_new_list, savehook_new_data, savegametaged, None, extradatas],
         beatiful=False,
     )
-    safesave("userconfig/Magpie/config.json", magpie_config, isconfig=False)
+    safesave(
+        errorcollect, "userconfig/Magpie/config.json", magpie_config, isconfig=False
+    )
     if not test:
         safesave(
-            "files/lang/{}.json".format(getlanguse()), languageshow, isconfig=False
+            errorcollect,
+            "files/lang/{}.json".format(getlanguse()),
+            languageshow,
+            isconfig=False,
         )
-
-
-is_xp = tuple(sys.version_info)[:2] == (3, 4)
-is_bit_64 = platform.architecture()[0] == "64bit"
+    return errorcollect
