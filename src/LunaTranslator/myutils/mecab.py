@@ -2,7 +2,6 @@ import NativeUtils
 import os
 from myutils.config import isascii, globalconfig
 from traceback import print_exc
-from myutils.config import isascii
 from qtsymbols import *
 from sometypes import WordSegResult
 
@@ -16,8 +15,8 @@ roma_s=["a","i","u","e","o","ka","ki","ku","ke","ko","sa","shi","su","se","so","
 
 # fmt: off
 punctuations = [
-    "【","】","。","，","！","？","　","‘","’","“","”","、","《","》","；","：","……","（","）","」","「",
-    " ",",","·",".","'","\"","?","/",";",":","|","[","]","{","}","-","_","=","+","`","~","!","#","$","%","^","&","*","(",")"
+    "【","】","。","，","！","？","　","‘","’","“","”","、","《","》","；","：","…","（","）","」","「",
+    " ",",","·",".","'","\"","?","/",";",":","|","[","]","{","}","-","_","=","+","`","~","!","#","$","%","^","&","*","(",")","\\"
 ]
 # fmt: on
 
@@ -108,6 +107,9 @@ class _base:
             _ = len(hira) - 1 - _1
             if not hira[_].kana:
                 continue
+            if globalconfig["hira_vis_type"] in (0, 1):
+                if len(set(hira[_].word) - set(allkata + allhira)) == 0:
+                    hira[_].hidekana = True
             if globalconfig["hira_vis_type"] == 0:
                 hira[_].kana = hira[_].kana.translate(castkata2hira)
             elif globalconfig["hira_vis_type"] == 1:
@@ -233,9 +235,13 @@ class mecab(_base):
 
             if kana == "*":
                 kana = ""
-
+            fields = list(dict.fromkeys(fields))
+            if "*" in fields:
+                fields.remove("*")
             result.append(
-                WordSegResult(orig, kana=kana, prototype=origorig, wordclass=pos1)
+                WordSegResult(
+                    orig, kana=kana, prototype=origorig, wordclass=pos1, info=fields
+                )
             )
         extras = text[start:]
         if len(extras):
@@ -274,5 +280,6 @@ class latin(_base):
 
     def parse(self, text: str):
         return (
-            WordSegResult(_, donthighlight=True) for _ in splitstr(text, punctuations)
+            WordSegResult(_, donthighlight=True, isshit=not isascii(_))
+            for _ in splitstr(text, punctuations)
         )

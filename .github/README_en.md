@@ -1,14 +1,10 @@
-# LunaTranslator
+# LunaTranslator [Software Download](https://docs.lunatranslator.org/README.html)
 
 > **A Visual Novel translation tool**
 
 ### [简体中文](README.md) | English | [Other Language](otherlang.md) 
 
-### [User Manual](https://docs.lunatranslator.org/) | [Software Download](https://docs.lunatranslator.org/README.html) | [![](https://img.shields.io/discord/1262692128031772733?label=Discord&logo=discord&color=FF007C&style=for-the-badge)](https://discord.com/invite/ErtDwVeAbB)
-
-## Sponsorship
- 
-If you feel that the software is helpful to you, welcome to become my [sponsor](https://patreon.com/HIllya51). Thank you ~ 
+### If you encounter any difficulties while using the software, you can check the [User Guide](/), join our [![](https://img.shields.io/discord/1262692128031772733?label=Discord&logo=discord&color=FF007C&style=for-the-badge)](https://discord.com/invite/ErtDwVeAbB), or open an [issue](https://github.com/HIllya51/LunaTranslator/issues) on [GitHub](https://github.com/HIllya51/LunaTranslator) to contact me.
 
 ## Feature Support
 
@@ -19,6 +15,8 @@ If you feel that the software is helpful to you, welcome to become my [sponsor](
 - **OCR** supports **[offline OCR](https://docs.lunatranslator.org/useapis/ocrapi.html)** and **[online OCR](https://docs.lunatranslator.org/useapis/ocrapi.html)**
 
 - **Clipboard** Supports retrieving text from the clipboard for translation and can also output extracted text to the clipboard.
+
+- **Other** also supports **[speech recognition](https://docs.lunatranslator.org/sr.html)** and **file translation**
 
 #### Translator
 
@@ -43,6 +41,10 @@ Supports almost all conceivable translation engines, including:
 - **Anki** Supports one-click addition of words to Anki
 
 - **Load Browser Extensions** Browser extensions like Yomitan can be loaded within the software to assist in implementing additional features.
+
+## Sponsorship
+
+Software maintenance is not easy. If you find this software helpful, please consider becoming my [sponsor](https://patreon.com/HIllya51). Your support will be a driving force for the long-term maintenance of the software. Thank you~  
 
 ## Open Source License
 
@@ -78,4 +80,5 @@ LunaTranslator uses [GPLv3](../LICENSE) license.
 * ![img](https://img.shields.io/github/license/swigger/wechat-ocr) [swigger/wechat-ocr](https://github.com/swigger/wechat-ocr)
 * ![img](https://img.shields.io/github/license/rupeshk/MarkdownHighlighter) [rupeshk/MarkdownHighlighter](https://github.com/rupeshk/MarkdownHighlighter)
 * ![img](https://img.shields.io/github/license/sindresorhus/github-markdown-css) [sindresorhus/github-markdown-css](https://github.com/sindresorhus/github-markdown-css)
+* ![img](https://img.shields.io/github/license/gexgd0419/NaturalVoiceSAPIAdapter) [gexgd0419/NaturalVoiceSAPIAdapter](https://github.com/gexgd0419/NaturalVoiceSAPIAdapter)
 </details>

@@ -2,7 +2,7 @@ import os
 from myutils.config import globalconfig
 import requests, zipfile, gobject
 from gui.usefulwidget import VisLFormLayout, getsmalllabel, getboxlayout
-from myutils.utils import makehtml, stringfyerror
+from myutils.utils import makehtml, stringfyerror, dynamiclink
 from myutils.config import _TR, mayberelpath
 from myutils.wrapper import threader
 from myutils.proxy import getproxy
@@ -14,36 +14,26 @@ class resourcewidget(QWidget):
     installsucc = pyqtSignal(bool, str)
 
     def _installsucc(self, succ, failreason):
+        self.formLayout.setRowVisible(2, False)
+        self.btninstall.setVisible(not succ)
+        self.btninstall.setEnabled(True)
         if succ:
-            self.progresssetval.emit(_TR("添加成功"), 10000)
             QMessageBox.information(self, _TR("成功"), _TR("添加成功"))
-            self.formLayout.setRowVisible(2, False)
-            self.btninstall.setVisible(False)
         else:
-            self.progresssetval.emit(_TR("添加失败"), 0)
-            res = QMessageBox.question(
-                self,
-                _TR("错误"),
-                failreason + "\n\n" + _TR("自动添加失败，是否手动添加？"),
-            )
-            if res == QMessageBox.StandardButton.Yes:
-                os.startfile(self.oldlink)
-            self.formLayout.setRowVisible(2, False)
-            self.btninstall.setEnabled(True)
+            QMessageBox.critical(self, _TR("添加失败"), _TR("错误") + "\n" + failreason)
 
-    oldlink = (
-        "https://clrd.ninjal.ac.jp/unidic_archive/cwj/2.1.2/unidic-mecab-2.1.2_bin.zip"
-    )
+    @property
+    def oldlink(self):
+        return dynamiclink("/Resource/dictionary/unidic-mecab-2.1.2_bin.zip")
 
     checkdirname = "unidic-mecab-2.1.2_bin"
     oldlinkfnname = "unidic-mecab-2.1.2_bin.zip"
 
     def downloadofficial(self):
         url = self.oldlink
-        req = requests.head(url, proxies=getproxy())
-        size = int(req.headers["Content-Length"])
         file_size = 0
         req = requests.get(url, stream=True, proxies=getproxy())
+        size = int(req.headers["Content-Length"])
         target = gobject.gettempdir(self.oldlinkfnname)
         with open(target, "wb") as ff:
             for _ in req.iter_content(chunk_size=1024 * 32):
@@ -62,7 +52,7 @@ class resourcewidget(QWidget):
             ff.extractall(gobject.getcachedir())
         tgt = gobject.getcachedir(self.checkdirname)
         globalconfig["hirasetting"]["mecab"]["args"]["path"] = mayberelpath(tgt)
-        gobject.baseobject.startmecab()
+        gobject.base.startmecab()
 
     @threader
     def downloadxSafe(self, url):
@@ -142,33 +132,25 @@ class resourcewidget2(QWidget):
     installsucc = pyqtSignal(bool, str)
 
     def _installsucc(self, succ, failreason):
+        self.formLayout.setRowVisible(3, False)
+        self.btninstall.setVisible(not succ)
+        self.btninstall.setEnabled(True)
         if succ:
-            self.progresssetval.emit(_TR("添加成功"), 10000)
             QMessageBox.information(self, _TR("成功"), _TR("添加成功"))
-            self.formLayout.setRowVisible(3, False)
-            self.btninstall.setVisible(False)
         else:
-            self.progresssetval.emit(_TR("添加失败"), 0)
-            res = QMessageBox.question(
-                self,
-                _TR("错误"),
-                failreason + "\n\n" + _TR("自动添加失败，是否手动添加？"),
-            )
-            if res == QMessageBox.StandardButton.Yes:
-                os.startfile(self.oldlink)
-            self.formLayout.setRowVisible(3, False)
-            self.btninstall.setEnabled(True)
+            QMessageBox.critical(self, _TR("添加失败"), _TR("错误") + "\n" + failreason)
 
-    oldlink = "https://github.com/stephenmk/stephenmk.github.io/releases/latest/download/jitendex-mdict.zip"
+    @property
+    def oldlink(self):
+        return dynamiclink("/Resource/dictionary/jitendex-mdict.zip")
 
     def downloadofficial(self):
         tgt = gobject.getcachedir("mdict/jitendex/jitendex.mdx")
         if not os.path.isfile(tgt):
             url = self.oldlink
-            req = requests.head(url, proxies=getproxy())
-            size = int(req.headers["Content-Length"])
             file_size = 0
             req = requests.get(url, stream=True, proxies=getproxy())
+            size = int(req.headers["Content-Length"])
             target = gobject.gettempdir(url.split("/")[-1])
             with open(target, "wb") as ff:
                 for _ in req.iter_content(chunk_size=1024 * 32):
@@ -186,7 +168,7 @@ class resourcewidget2(QWidget):
             with zipfile.ZipFile(target) as ff:
                 ff.extractall(gobject.getcachedir("mdict"))
         globalconfig["cishu"]["mdict"]["args"]["paths"].append(mayberelpath(tgt))
-        gobject.baseobject.startxiaoxueguan("mdict")
+        gobject.base.startxiaoxueguan("mdict")
 
     @threader
     def downloadxSafe(self, url):

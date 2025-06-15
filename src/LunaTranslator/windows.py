@@ -26,6 +26,8 @@ from ctypes.wintypes import (
     POINT,
     HWND,
     BOOL,
+    LCID,
+    LCTYPE,
     DWORD,
     LONG,
     HMONITOR,
@@ -95,6 +97,7 @@ SW_SHOWNORMAL = 1
 WS_EX_TOOLWINDOW = 128
 SWP_NOSIZE = 1
 SW_SHOW = 5
+WS_THICKFRAME = 0x00040000
 
 FILE_SHARE_READ = 0x00000001
 FILE_ATTRIBUTE_NORMAL = 0x80
@@ -445,12 +448,28 @@ def _GetProcessFileName(hHandle):
     return check_maybe_unc_file(v)
 
 
-def GetProcessFileName(hHandle):
+def ___GetProcessFileName(hHandle):
     p = _GetProcessFileName(hHandle)
     if p:
         # GetModuleFileNameExW有可能莫名其妙得到短路径，导致部分路径无法匹配
         p = GetLongPathName(p)
     return p
+
+
+def GetProcessFileName(pid):
+    for _ in (
+        PROCESS_ALL_ACCESS,  # 如果能这个，那最好，因为一些特殊路径在这个权限下可以不需要处理
+        PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,  # GetModuleFileNameExW
+        PROCESS_QUERY_INFORMATION,  # XP
+        PROCESS_QUERY_LIMITED_INFORMATION,
+    ):
+        hproc = OpenProcess(_, False, pid)
+        if not hproc:
+            continue
+        name_ = ___GetProcessFileName(hproc)
+        if name_:
+            return name_
+    return None
 
 
 _CreateProcessW = _kernel32.CreateProcessW
@@ -698,19 +717,6 @@ SetProp.argtypes = HWND, LPCWSTR, HANDLE
 SetProp.restype = BOOL
 
 
-_GetEnvironmentVariableW = _kernel32.GetEnvironmentVariableW
-_GetEnvironmentVariableW.argtypes = c_wchar_p, c_wchar_p, DWORD
-_SetEnvironmentVariableW = _kernel32.SetEnvironmentVariableW
-_SetEnvironmentVariableW.argtypes = LPCWSTR, LPCWSTR
-
-
-def addenvpath(path):
-    path = os.path.abspath(path)
-    env = create_unicode_buffer(65535)
-    _GetEnvironmentVariableW("PATH", env, 65535)
-    _SetEnvironmentVariableW("PATH", env.value + ";" + path)
-
-
 GetModuleHandle = _kernel32.GetModuleHandleW
 GetModuleHandle.argtypes = (LPCWSTR,)
 GetModuleHandle.restype = HMODULE
@@ -820,3 +826,20 @@ def GetClassName(hwnd):
     if not ret:
         return
     return buff.value
+
+
+GetUserDefaultLCID = _kernel32.GetUserDefaultLCID
+GetUserDefaultLCID.restype = LCID
+GetLocaleInfoW = _kernel32.GetLocaleInfoW
+GetLocaleInfoW.argtypes = LCID, LCTYPE, LPCWSTR, c_int
+LOCALE_SISO639LANGNAME = 0x59
+LOCALE_SISO3166CTRYNAME = 0x5A
+
+
+def GetLocale():
+    lcid = GetUserDefaultLCID()
+    buff = create_unicode_buffer(10)
+    buff2 = create_unicode_buffer(10)
+    GetLocaleInfoW(lcid, LOCALE_SISO639LANGNAME, buff, 10)
+    GetLocaleInfoW(lcid, LOCALE_SISO3166CTRYNAME, buff2, 10)
+    return buff.value, buff2.value

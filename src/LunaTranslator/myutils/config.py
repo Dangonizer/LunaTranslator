@@ -1,5 +1,5 @@
 import json
-import os, time, uuid, shutil, sys, platform, re
+import os, time, uuid, re
 from traceback import print_exc
 from language import TransLanguages, Languages
 
@@ -33,19 +33,6 @@ def isascii(s: str):
             return False
 
 
-def namemapcast(namemap):
-    bettermap = namemap.copy()
-    for k, v in namemap.items():
-        for sp in ["・", " "]:
-            spja = k.split(sp)
-            spen = v.split(sp if k == v else " ")
-            if len(spja) == len(spen) and len(spen) > 1:
-                for i in range(len(spja)):
-                    if len(spja[i]) >= 2:
-                        bettermap[spja[i]] = spen[i]
-    return bettermap
-
-
 def tryreadconfig(path, default=None):
     path = os.path.join("userconfig", path)
     try:
@@ -69,7 +56,7 @@ def tryreadconfig_1(path, default=None, pathold=None):
 
 
 def tryreadconfig2(path):
-    path = os.path.join("files/defaultconfig", path)
+    path = os.path.join("LunaTranslator/defaultconfig", path)
     with open(path, "r", encoding="utf-8") as ff:
         x = json.load(ff)
     return x
@@ -192,7 +179,6 @@ def getdefaultsavehook(title=None):
         # "tts_skip_regex": [],
         # "gamejsonfile": [],  # 之前是"",后面改成[]
         # "gamesqlitefile": "",
-        # "relationlinks": [],
         # "istitlesetted": False,
         # "currentvisimage": None,
         # "currentmainimage": "",
@@ -218,7 +204,6 @@ def getdefaultsavehook(title=None):
         "usertags": [],
         "developers": [],
         "webtags": [],  # 标签
-        # "description": "",  # 简介
     }
     if title and len(title):
         default["title"] = title  # metadata
@@ -335,15 +320,6 @@ def syncconfig(config1, default, drop=False, deep=0):
 
 syncconfig(globalconfig, defaultglobalconfig)
 syncconfig(transerrorfixdictconfig, defaulterrorfix)
-if True:  # transerrorfixdictconfig cast v1 to v2:
-    if "dict" in transerrorfixdictconfig:
-        for key in transerrorfixdictconfig["dict"]:
-            value = transerrorfixdictconfig["dict"][key]
-            transerrorfixdictconfig["dict_v2"].append(
-                {"key": key, "value": value, "regex": False}
-            )
-        transerrorfixdictconfig.pop("dict")
-
 
 syncconfig(magpie_config, dfmagpie_config)
 syncconfig(
@@ -413,6 +389,8 @@ def __partagA(match: re.Match):
 def _TR(k: str) -> str:
     if not k:
         return ""
+    if k == "√":
+        return k
     if "[[" in k and "]]" in k:
         return re.sub(r"(.*)\[\[(.*?)\]\](.*)", __parsenottr, k)
     if k.startswith("(") and k.endswith(")"):
@@ -437,15 +415,6 @@ def _TRL(kk):
     for k in kk:
         x.append(_TR(k))
     return x
-
-
-def getlang_inner2show(langcode):
-    return dict(
-        zip(
-            [_.code for _ in TransLanguages],
-            [_.zhsname for _ in TransLanguages],
-        )
-    ).get(langcode, "??")
 
 
 def unsafesave(fname: str, js, beatiful=True):

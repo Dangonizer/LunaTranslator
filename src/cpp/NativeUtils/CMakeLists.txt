@@ -31,16 +31,28 @@ set(webview2_src webview2/webview2.cpp webview2/webview2_impl.cpp)
 set(loopback_src applicationloopbackaudio/runer.cpp applicationloopbackaudio/LoopbackCapture.cpp)
 
 
-add_library(NativeUtils SHARED 
-    globalmessagelistener.cpp AreoAcrylic.cpp screenshot.cpp ../implsapi.cpp hwnd.cpp theme.cpp version.cpp lnk.cpp muteprocess.cpp sapi_dll.cpp tools.cpp icon.cpp adapters.cpp appx.cpp
+add_library(NativeUtils SHARED
+    audiodevice.cpp
+    globalmessagelistener.cpp AreoAcrylic.cpp screenshot.cpp hwnd.cpp theme.cpp lnk.cpp muteprocess.cpp sapi_dll.cpp tools.cpp icon.cpp adapters.cpp appx.cpp
     ${loopback_src} ${winrt_src} ${mshtml_src} ${webview2_src} ${versioninfo}
 )
 target_precompile_headers(NativeUtils REUSE_FROM pch)
+target_link_libraries(NativeUtils PRIVATE tiny-aes Dbghelp libmecab rapidfuzz webview2 mfuuid md4c-all dwmapi d3d11 version Mfplat DXGI)
 
-target_link_libraries(NativeUtils tiny-aes Dbghelp libmecab rapidfuzz webview2 mfuuid md4c-all dwmapi d3d11 version ${YY_Thunks})
+if(MSVC)
+    target_link_libraries(NativeUtils PRIVATE ${YY_Thunks})
+    target_link_options(NativeUtils PRIVATE "/DELAYLOAD:Dbghelp.dll")
+    if(NOT WINXP)
+        target_link_libraries(NativeUtils PRIVATE ShCore Mmdevapi)
+        target_link_options(NativeUtils PRIVATE "/DELAYLOAD:MMDevAPI.dll")
+        target_link_options(NativeUtils PRIVATE "/DELAYLOAD:MFPlat.dll")
+        target_link_options(NativeUtils PRIVATE "/DELAYLOAD:dxgi.dll")
+        target_link_options(NativeUtils PRIVATE "/DELAYLOAD:d3d11.dll")
+    endif()
+else()
+    target_link_libraries(NativeUtils PRIVATE ShCore Mmdevapi)
+endif()
 
-target_link_options(NativeUtils PRIVATE "/DELAYLOAD:Dbghelp.dll")
-if(NOT WINXP)
-    target_link_options(NativeUtils PRIVATE "/DELAYLOAD:MFPlat.dll")
-    target_link_options(NativeUtils PRIVATE "/DELAYLOAD:dxgi.dll")
+if(WIN10ABOVE)
+	target_link_libraries(NativeUtils PRIVATE windowsapp)
 endif()

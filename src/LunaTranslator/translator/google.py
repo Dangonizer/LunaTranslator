@@ -1,8 +1,7 @@
 from language import Languages
 import json
 from translator.cdp_helper import cdp_helper
-import re, html, time
-from urllib.parse import quote
+import re, html
 from translator.basetranslator import basetrans
 
 
@@ -73,7 +72,6 @@ class TS(basetrans):
                 "sec-fetch-site": "same-origin",
                 "sec-fetch-user": "?1",
                 "upgrade-insecure-requests": "1",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.53",
             },
             verify=False,
         ).text
@@ -87,7 +85,6 @@ class TS(basetrans):
             "Origin": "https://translate.google.com",
             "Referer": "https://translate.google.com",
             "X-Requested-With": "XMLHttpRequest",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
         }
 
         response = self.proxysession.post(
@@ -134,7 +131,6 @@ class TS(basetrans):
             "sec-fetch-site": "same-origin",
             "sec-fetch-user": "?1",
             "upgrade-insecure-requests": "1",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.53",
         }
         params = {
             "sl": self.srclang,
